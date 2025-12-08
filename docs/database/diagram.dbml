@@ -1,131 +1,108 @@
-Project vc_user {
+// OK, this is a sample from one of the apps I have worked with. Great boilerplate for
+// learning how to write the `.dbml` files.
+
+Project rental_house_fastapi {
   database: 'PostgreSQL'
-  Note: 'Applicatoin Note: Write a desciption here.'
+  Note: 'Backend for a rental house application using FastAPI.'
 }
 
 
 /////////////////////////
-//      App Name      //
+//    Account App     //
 ///////////////////////
 
 
-TableGroup user {
-  user.user
+TableGroup auth {
+  auth.user
+  auth.profile
+  auth.role
+  auth.user_role
+  auth.permission
+  auth.role_permission
 }
 
+Table auth.user {
+    id               int           [pk, increment, note: 'Primary key']
+    email            varchar(255)  [unique, not null, note: 'Unique email address']
+    hashed_password  varchar(255)  [not null, note: 'Hashed password']
+    is_active        boolean       [default: true, note: 'Indicates if the user is active']
+    is_verified      boolean       [default: false, note: 'Indicates if the user is verified']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
+    updated_at       timestamp     [default: `current_timestamp`, note: 'Record update timestamp']
 
-Table user.user {
-  id integer [
-    pk,
-    increment,
-    unique,
-    not null,
-    note: 'Unique identifier for each user.'
-  ]
-  username varchar(64) [
-    unique,
-    not null,
-    note: 'Unique username for identification purposes.'
-  ]
-  display_name varchar(256) [
-    note: 'Display name shown to other users.'
-  ]
-  role user.role [
-    not null,
-    note: 'Role of the user in the conference (e.g., Host or Guest).'
-  ]
-  user_id varchar(256) [
-    note: 'Identifier linking to user data if applicable.'
-  ]
-  tracking_ids array [
-    default: "Empty Array",
-    note: 'Array of tracking IDs for user activity monitoring.'
-  ]
-  created_by varchar(256) [
-    note: 'ID of the user who created the user record.'
-  ]
-  updated_by varchar(256) [
-    note: 'ID of the user who last updated the user record.'
-  ]
-  created_at datetime [
-    default: `now()`,
-    not null,
-    note: 'Timestamp indicating when the user record was created.'
-  ]
-  updated_at datetime [
-    note: 'Timestamp indicating when the user record was last updated.'
-  ]
+    Note: 'Table to store user credentials and status'
 }
 
+Table auth.profile {
+    id               int           [pk, increment, note: 'Primary key']
+    user_id          int           [ref: - auth.user.id, unique, note: 'Foreign key referencing users table']
+    full_name        varchar(255)  [null, note: 'Full name of the user']
+    bio              text          [null, note: 'Short biography of the user']
+    avatar_url       varchar(255)  [null, note: 'URL to the user\'s avatar']
+    location         varchar(255)  [null, note: 'Location of the user']
+    birthdate        date          [null, note: 'Birthdate of the user']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
+    updated_at       timestamp     [default: `current_timestamp`, note: 'Record update timestamp']
 
-Table user.attributes {
-  id integer [
-    pk,
-    increment,
-    unique,
-    not null,
-    note: 'Unique identifier for each attribute.'
-  ]
-  name varchar(256) [
-    unique,
-    not null,
-    note: 'Name of the attribute.'
-  ]
-  created_by varchar(256) [
-    note: 'ID of the user who created the attribute record.'
-  ]
-  updated_by varchar(256) [
-    note: 'ID of the user who last updated the attribute record.'
-  ]
-  created_at datetime [
-    default: `now()`,
-    not null,
-    note: 'Timestamp indicating when the attribute record was created.'
-  ]
-  updated_at datetime [
-    note: 'Timestamp indicating when the attribute record was last updated.'
-  ]
+    Note: 'Table to store additional user profile information'
 }
 
+Table auth.role {
+    id               int           [pk, increment, note: 'Primary key']
+    name             varchar(63)   [unique, not null, note: 'Role name (e.g., admin, user, moderator)']
+    description      text          [note: 'Description of the role']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
+    updated_at       timestamp     [default: `current_timestamp`, note: 'Record update timestamp']
 
-Table users.values {
-  id integer [
-    pk,
-    increment,
-    unique,
-    not null,
-    note: 'Unique identifier for each user-attribute association.'
-  ]
-  user_id integer [
-    ref: > user.user.id,
-    note: 'ID of the user to which the attribute belongs.'
-  ]
-  attribute_id integer [
-    ref: > user.attributes.id,
-    note: 'ID of the attribute associated with the user.'
-  ]
-  value varchar(256) [
-    not null,
-    note: 'Value of the attribute for the user.'
-  ]
-  created_by varchar(256) [
-    note: 'ID of the user who created the attribute value record.'
-  ]
-  updated_by varchar(256) [
-    note: 'ID of the user who last updated the attribute value record.'
-  ]
-  created_at datetime [
-    default: `now()`,
-    not null,
-    note: 'Timestamp indicating when the attribute value record was created.'
-  ]
-  updated_at datetime [
-    note: 'Timestamp indicating when the attribute value record was last updated.'
-  ]
+    Note: 'Table to store user roles'
 }
 
+Table auth.user_role {
+    id               int           [pk, increment, note: 'Primary key']
+    user_id          int           [ref: > auth.user.id, note: 'Foreign key referencing users table']
+    role_id          int           [ref: > auth.role.id, note: 'Foreign key referencing roles table']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
 
-enum user.role {
-  "Host" [note: "The primary role responsible for managing the room and its activities."]
-  "Guest" [note: "A user with limited privileges, typically attending without administrative responsibilities."]
+    Note: 'Table to assign roles to users'
+}
+
+Table auth.permission {
+    id               int           [pk, increment, note: 'Primary key']
+    name             varchar(63)   [unique, not null, note: 'Permission name (e.g., read, write, delete)']
+    description      text          [note: 'Description of the permission']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
+    updated_at       timestamp     [default: `current_timestamp`, note: 'Record update timestamp']
+
+    Note: 'Table to store permissions'
+}
+
+Table auth.role_permission {
+    id               int           [pk, increment, note: 'Primary key']
+    role_id          int           [ref: > auth.role.id, note: 'Foreign key referencing roles table']
+    permission_id    int           [ref: > auth.permission.id, note: 'Foreign key referencing permissions table']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
+
+    Note: 'Table to assign permissions to roles'
+}
+
+Table auth.token {
+    id               int           [pk, increment, note: 'Primary key']
+    user_id          int           [ref: > auth.user.id, note: 'Foreign key referencing users table']
+    refresh_token    varchar(255)  [unique, not null, note: 'Refresh token for the user']
+    expires_at       timestamp     [not null, note: 'Expiration time of the refresh token']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Record creation timestamp']
+    updated_at       timestamp     [default: `current_timestamp`, note: 'Record update timestamp']
+
+    Note: 'Table to store JWT refresh tokens'
+}
+
+Table auth.activity_log {
+    id               int           [pk, increment, note: 'Primary key']
+    user_id          int           [ref: > auth.user.id, note: 'Foreign key referencing users table']
+    action           varchar(255)  [not null, note: 'Description of the action performed']
+    ip_address       varchar(45)   [note: 'IP address from where the action was performed']
+    user_agent       text          [note: 'User agent string of the client']
+    created_at       timestamp     [default: `current_timestamp`, note: 'Timestamp of the action']
+
+    Note: 'Table to store logs of user activities'
 }
