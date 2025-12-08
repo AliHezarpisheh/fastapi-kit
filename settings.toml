@@ -1,35 +1,72 @@
-# These are just placeholders.
+# These settings and configurations are consistent across different environments.
+# Inconsistent and secret settings and configurations should be placed in the .env files,
+# using the .env.example files.
 
-env = "development"
-
+# OpenAPI information
 [openapi]
-title = "Service API"
+title = "<App Name> API"
 version = "1.0.0"
 description = """
-Write the description here.
+Write down your description.
 """
 
 [openapi.contact]
-name = "Mock API Support Team"
-url = "https://mockplatform.example"
-email = "support@mockplatform.example"
+name = "<App Name> API Support Team"
+email = "<App Support Email>"
 
 [openapi.license]
-name = "MIT License"
-url = "https://opensource.org/licenses/MIT"
-
-[openapi.external_docs]
-description = "Access the comprehensive documentation for the Service API."
-url = "https://wiki.mockplatform.example/display/dev/Mock+Shop+Project"
+name = "<License>"
+url = "<License url>"
 
 [[openapi.tags]]
-name = "Users"
-description = "Operations related to user management"
+name = "Health Check"
+description = "A simple endpoint to check if the API is up and running."
 
-[[openapi.tags]]
-name = "Products"
-description = "Operations related to products management"
+# Write other tags using the above(Health Check) format.
 
-[[openapi.tags]]
-name = "Subscription"
-description = "Operations related to subscription management"
+# Logging configuration
+[logging]
+version = 1
+disable_existing_loggers = false
+
+[logging.formatters.coreFormatter]
+format = "%(asctime)s - %(levelname)s - %(name)s - %(relativepath)s:%(lineno)d - %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"
+
+[logging.handlers.consoleHandler]
+level = "DEBUG"
+class = "logging.StreamHandler"
+formatter = "coreFormatter"
+
+[logging.handlers.fileHandler]
+level = "INFO"
+class = "logging.handlers.RotatingFileHandler"
+filename = "logs/api.log"  # Set the filename whatever you want.
+maxBytes = 1048576   # 1 MB
+backupCount = 10
+formatter = "coreFormatter"
+
+[logging.loggers.development]
+level = "DEBUG"
+handlers = ["consoleHandler", "fileHandler"]
+propagate = true
+
+[logging.loggers.production]
+level = "INFO"
+handlers = ["fileHandler"]
+propagate = true
+
+[logging.loggers.uvicorn]
+level = "DEBUG"
+handlers = ["consoleHandler", "fileHandler"]
+propagate = true
+
+[logging.loggers.uvicorn.error]
+level = "DEBUG"
+handlers = ["consoleHandler", "fileHandler"]
+propagate = true
+
+[logging.loggers.uvicorn.access]
+level = "DEBUG"
+handlers = ["consoleHandler", "fileHandler"]
+propagate = true
