@@ -12,11 +12,11 @@ Write down your description.
 
 [openapi.contact]
 name = "<App Name> API Support Team"
-email = "<App Support Email>"
+email = "app-support-email@gmail.com"
 
 [openapi.license]
 name = "<License>"
-url = "<License url>"
+url = "https://mit-license.org"
 
 [[openapi.tags]]
 name = "Health Check"
