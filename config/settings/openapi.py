@@ -12,7 +12,7 @@ from toolkit.api.schemas.errors import (
     InternalServerError,
     NotFound,
     Unauthorized,
-    UnprocessableEntity,
+    UnprocessableContent,
 )
 
 
@@ -20,7 +20,6 @@ class ContactSettings(BaseModel):
     """Contact information for the API."""
 
     name: str
-    url: AnyHttpUrl
     email: EmailStr
 
 
@@ -28,13 +27,6 @@ class LicenseSettings(BaseModel):
     """License information for the API."""
 
     name: str
-    url: AnyHttpUrl
-
-
-class ExternalDocsSettings(BaseModel):
-    """External documentation information for the API."""
-
-    description: str
     url: AnyHttpUrl
 
 
@@ -53,7 +45,6 @@ class OpenAPISettings(BaseSettings):
     description: str
     contact: ContactSettings
     license: LicenseSettings
-    external_docs: ExternalDocsSettings
     tags: list[TagSettings]
 
 
@@ -84,9 +75,9 @@ responses: dict[str | int, dict[str, Any]] = {
         ),
     },
     "422": {
-        "model": UnprocessableEntity,
+        "model": UnprocessableContent,
         "description": (
-            "Unprocessable Entity. The request is well-formed but unable to be "
+            "Unprocessable Content. The request is well-formed but unable to be "
             "processed due to semantic errors."
         ),
     },
