@@ -1,6 +1,6 @@
 """Client for making HTTP requests using the httpx library."""
 
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urljoin
 
 import httpx
@@ -13,7 +13,7 @@ class AsyncAPIClient:
         self,
         base_url: str,
         timeout: int = 10,
-        default_headers: Optional[dict[str, Any]] = None,
+        default_headers: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the AsyncAPIClient."""
         self.base_url = base_url
@@ -25,9 +25,9 @@ class AsyncAPIClient:
         self,
         method: str,
         endpoint: str,
-        headers: Optional[dict[str, Any]] = None,
-        params: Optional[dict[str, Any]] = None,
-        payload: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        payload: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """
@@ -72,8 +72,8 @@ class AsyncAPIClient:
     async def get(
         self,
         endpoint: str = "",
-        headers: Optional[dict[str, Any]] = None,
-        params: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """
@@ -103,9 +103,9 @@ class AsyncAPIClient:
     async def post(
         self,
         endpoint: str = "",
-        headers: Optional[dict[str, Any]] = None,
-        params: Optional[dict[str, Any]] = None,
-        payload: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        payload: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """
@@ -142,9 +142,9 @@ class AsyncAPIClient:
     async def put(
         self,
         endpoint: str = "",
-        headers: Optional[dict[str, Any]] = None,
-        params: Optional[dict[str, Any]] = None,
-        payload: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        payload: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """
@@ -181,9 +181,9 @@ class AsyncAPIClient:
     async def patch(
         self,
         endpoint: str = "",
-        headers: Optional[dict[str, Any]] = None,
-        params: Optional[dict[str, Any]] = None,
-        payload: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        payload: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """
@@ -220,8 +220,8 @@ class AsyncAPIClient:
     async def delete(
         self,
         endpoint: str = "",
-        headers: Optional[dict[str, Any]] = None,
-        params: Optional[dict[str, Any]] = None,
+        headers: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """
@@ -253,7 +253,7 @@ class AsyncAPIClient:
         return f"AsyncAPIClient - Base URL: {self.base_url}, Timeout: {self.timeout}s"
 
     def __repr__(self) -> str:
-        """Return an unambiguous string representation of the AsyncAPIClient."""
+        """Return a human-readable string representation of the AsyncAPIClient."""
         return (
             f"AsyncAPIClient(base_url={self.base_url}, "
             f"timeout={self.timeout}, "
