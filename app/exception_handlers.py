@@ -1,149 +1,107 @@
-"""Module containing custom exception handlers for FastAPI applications."""
+"""Containing custom exception handlers for FastAPI applications."""
 
-import logging
-
-from fastapi import Request, status
+import fastapi
+from fastapi import Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import ORJSONResponse
 
-from toolkit.api.enums import HTTPStatusDoc, Status
-from toolkit.api.exceptions import (
-    BaseTokenError,
-    CustomHTTPException,
-    DoesNotExistError,
-)
-
-logger = logging.getLogger(__name__)
+from config.base import logger
+from toolkit.api.enums import HTTPStatusDoc, Messages, Status
+from toolkit.api.exceptions import APIException
 
 
-async def custom_http_exception_handler(
-    request: Request, exc: CustomHTTPException
-) -> JSONResponse:
+async def internal_exception_handler(_: Request, exc: Exception) -> ORJSONResponse:
     """
-    Handle CustomHTTPException raised within FastAPI routes.
+    Handle unexpected internal server errors.
+
+    This handler catches unhandled exceptions in FastAPI routes and returns a
+    standardized JSON response with a 500 status code.
 
     Parameters
     ----------
-    request : Request
+    _ : Request
         The incoming request object.
-    exc : CustomHTTPException
-        The instance of CustomHTTPException raised.
+    exc : Exception
+        The unhandled exception raised during request processing.
 
     Returns
     -------
-    JSONResponse
-        JSON response containing error details, including status code,
-        error message, details, and documentation link if available.
+    ORJSONResponse
+        A response object containing the error details.
     """
-    return JSONResponse(
-        status_code=exc.status_code,
+    logger.critical("Unhandled error occurred. Exception details: %s", exc)
+    return ORJSONResponse(
+        status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "error": {
-                "status": str(exc.status),
-                "message": exc.message,
-                "details": exc.details,
-                "documentation_link": exc.documentation_link,
-            }
+            "status": Status.ERROR.value,
+            "message": Messages.INTERNAL_SERVER_ERROR.value,
+            "documentationLink": HTTPStatusDoc.HTTP_STATUS_500.value,
         },
     )
 
 
 async def request_validation_exception_handler(
-    request: Request, exc: RequestValidationError
-) -> None:
+    _: Request, exc: RequestValidationError
+) -> ORJSONResponse:
     """
-    Handle RequestValidationError by raising a CustomHTTPException with details.
+    Handle FastAPI's RequestValidationError.
 
-    This function is an exception handler specifically designed to handle
-    RequestValidationError exceptions raised within FastAPI routes.
-    It raises a CustomHTTPException with a status code of 422 (Unprocessable Entity)
-    and includes details such as the error message, reason, affected field,
-    and a documentation link.
+    This handler captures validation errors raised by FastAPI/Pydantic during request
+    parsing and returns a structured response with a 422 status code.
 
     Parameters
     ----------
-    request : Request
+    _ : Request
         The incoming request object.
     exc : RequestValidationError
-        The instance of RequestValidationError raised.
+        The validation exception raised during request parsing.
 
-    Raises
-    ------
-    CustomHTTPException
-        Always raises a CustomHTTPException with a status code of 422
-        (Unprocessable Entity).
+    Returns
+    -------
+    ORJSONResponse
+        A response object containing the validation error details.
     """
     exc_data = exc.errors()[0]
-    logger.error("Request validation error occurred. Error details: %s", exc_data)
-    raise CustomHTTPException(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        status=Status.VALIDATION_ERROR,
-        message=exc_data["msg"],
-        field=f"{exc_data['loc'][1]}, in: {exc_data['loc'][0]}",
-        reason=exc_data["type"],
-        documentation_link=HTTPStatusDoc.STATUS_422,
+    message = exc.errors()[0]["msg"]
+    reason = exc.errors()[0]["type"]
+    loc = exc_data["loc"][0]
+    field = exc_data["loc"][1] if len(exc_data["loc"]) >= 2 else "-" + f", in: {loc}"
+    logger.error(
+        "Handle request pydantic validation exception. Exception details: %s", exc_data
+    )
+    return ORJSONResponse(
+        status_code=fastapi.status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={
+            "status": Status.VALIDATION_ERROR.value,
+            "message": message,
+            "details": {"field": field, "reason": reason},
+            "documentationLink": HTTPStatusDoc.HTTP_STATUS_422.value,
+        },
     )
 
 
-async def does_not_exist_exception_handler(
-    request: Request, exc: DoesNotExistError
-) -> None:
+async def api_exception_error_handler(_: Request, exc: APIException) -> ORJSONResponse:
     """
-    Handle DoesNotExistError by raising a CustomHTTPException with details.
+    Handle all the API exceptions in the code.
 
-    This function is an exception handler specifically designed to handle
-    DoesNotExistError exceptions and its children raised within FastAPI routes.
-    It raises a CustomHTTPException with a status code of 404 (Not Found)
-    and includes details such as the error message, reason, affected field,
-    and a documentation link.
+    This handler is the place where python `APIException` subclasses transform to a
+    HTTP response.
 
     Parameters
     ----------
-    request : Request
+    _ : Request
         The incoming request object.
-    exc : DoesNotExistError
-        The instance of DoesNotExistError raised.
+    exc : APIException
+        The APIException (or subclass) raised.
 
-    Raises
-    ------
-    CustomHTTPException
-        Always raises a CustomHTTPException with a status code of 404 (Not Found).
+    Returns
+    -------
+    ORJSONResponse
+        A response object containing the error details.
     """
-    logger.error("Does not exist error occurred. Error details: %s", exc)
-    raise CustomHTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        status=Status.NOT_FOUND,
-        message=str(exc),
-        documentation_link=HTTPStatusDoc.STATUS_404,
-    )
-
-
-async def base_token_error_handler(request: Request, exc: BaseTokenError) -> None:
-    """
-    Handle BaseTokenError by raising a CustomHTTPException with details.
-
-    This function is an exception handler specifically designed to handle
-    BaseTokenError exceptions raised within FastAPI routes.
-    It raises a CustomHTTPException with a status code of 401 (Unauthorized)
-    and includes details such as the error message, reason, affected field,
-    and a documentation link.
-
-    Parameters
-    ----------
-    request : Request
-        The incoming request object.
-    exc : BaseTokenError
-        The instance of BaseTokenError raised.
-
-    Raises
-    ------
-    CustomHTTPException
-        Always raises a CustomHTTPException with a status code of 401 (Unauthorized).
-    """
-    logger.error("Base token error occurred. Error details: %s", exc)
-    raise CustomHTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        status=Status.FORBIDDEN,
-        message=str(exc),
-        documentation_link=HTTPStatusDoc.STATUS_403,
+    logger.error("Handle %s. Exception details: %s", exc.__class__.__name__, exc)
+    return ORJSONResponse(
+        status_code=exc.status_code,
+        content=exc.to_jsonable_dict(),
+        headers=exc.http_headers,
     )

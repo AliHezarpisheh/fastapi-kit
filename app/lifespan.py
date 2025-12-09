@@ -1,23 +1,17 @@
 """Module for setting lifespan context manager for FastAPI application."""
 
-import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
-from config.base import db
-from toolkit.database.orm import Base
-
-logger = logging.getLogger(__name__)
+from config.base import db, logger, redis_manager
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     """Set lifespan context manager for FastAPI application."""
-    engine = db.get_engine()
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables have been created successfully!")
     yield
-    logger.info("Disposing database engine...")
-    engine.dispose()
+    logger.info("Cleaning up the application...")
+    await db.close_engine()
+    await redis_manager.disconnect()
