@@ -22,9 +22,9 @@ class APIException(ABC, Exception):
         If one of them is set and the other is unset, an `AssertionError` will be
         raised.
         """
-        assert not (
-            bool(field) ^ bool(reason)
-        ), "`field` and `reason` should be both set or unset"
+        assert not (bool(field) ^ bool(reason)), (
+            "`field` and `reason` should be both set or unset"
+        )
 
         self.message = message
         self.field = field
