@@ -9,7 +9,6 @@
 
 # Documentation
 **/*.md
-!README.md
 **/*.pdf
 /docs/html
 /docs/build
@@ -147,9 +146,6 @@
 
 # Environments
 **/.env
-**/.env.development
-**/.env.production
-**/.env.testing
 **/.venv
 **/env/
 **/venv/
@@ -251,6 +247,7 @@
 **/LICENSE
 docs/
 tox.ini
-poetry.lock
-pyproject.toml
 config/environments/
+**/logs/
+**/scripts/
+!scripts/entrypoint.sh
